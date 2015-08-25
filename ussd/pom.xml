@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.mobicents</groupId>
 		<artifactId>mobicents-parent</artifactId>
-		<version>2.23-SNAPSHOT</version>
+		<version>2.23</version>
 	</parent>
 
 	<artifactId>ss7-standalone-example-ussd</artifactId>
@@ -16,8 +16,6 @@
 
 	<name>Mobicents SS7 Example :: ${pom.artifactId}</name>
 
-
-
 	<properties>
 		<!-- maven.test.skip>false</maven.test.skip -->
 
@@ -27,11 +25,11 @@
 		<compiler.plugin.version>2.0.2</compiler.plugin.version>
 		<compile.source>1.5</compile.source>
 		<!-- mobicents jSS7 -->
-		<jss7.version>2.0.0-SNAPSHOT</jss7.version>
+		<jss7.version>2.0.0.BETA1</jss7.version>
 		<!-- mobicents but not strictly ss7 -->
 		<asn.version>2.0.0.FINAL</asn.version>
 		<stream.version>1.0.0.CR1</stream.version>
-		<sctp.version>1.0.0.CR3</sctp.version>
+		<sctp.version>1.6.0.FINAL</sctp.version>
 		<commons.version>1.0.0.CR1</commons.version>
 	</properties>
 
@@ -68,11 +66,11 @@
 			<version>${sctp.version}</version>
 		</dependency>
 		<!-- Scheduler -->
-		<dependency>
+		<!--<dependency>
 			<groupId>org.mobicents.protocols.ss7.scheduler</groupId>
 			<artifactId>scheduler</artifactId>
 			<version>${jss7.version}</version>
-		</dependency>
+		</dependency>-->
 		<!-- Clock -->
 		<dependency>
 			<groupId>org.mobicents.protocols.ss7.clock</groupId>
@@ -98,11 +96,11 @@
 		</dependency>
 
 		<!-- Hardware Dahdi Java -->
-		<dependency>
+		<!--<dependency>
 			<artifactId>mobicents-dahdi</artifactId>
 			<groupId>org.mobicents.protocols.ss7.hardware</groupId>
 			<version>${jss7.version}</version>
-		</dependency>
+		</dependency>-->
 
 		<!-- Hardware Dialogic Java -->
 		<dependency>
@@ -254,46 +252,6 @@
 			<id>release</id>
 			<modules />
 		</profile>
-		<profile>
-			<id>release-sign-artifacts</id>
-			<activation>
-				<property>
-					<name>performRelease</name>
-					<value>true</value>
-				</property>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-gpg-plugin</artifactId>
-						<executions>
-							<execution>
-								<id>sign-artifacts</id>
-								<phase>install</phase>
-								<goals>
-									<goal>sign</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-source-plugin</artifactId>
-						<version>2.1.2</version>
-						<executions>
-							<execution>
-								<id>attach-sources</id>
-								<phase>verify</phase>
-								<goals>
-									<goal>jar</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
 
 		<profile>
 			<id>client</id>
@@ -406,27 +364,6 @@
 	</licenses>
 	<build>
 		<plugins>
-			<plugin>
-				<artifactId>maven-eclipse-plugin</artifactId>
-				<groupId>org.mobicents.tools</groupId>
-				<version>
-					${mobicents.tools.mavenplugin.eclipse.version}
-				</version>
-				<inherited>false</inherited>
-				<executions />
-				<configuration>
-					<classpathExcludes>
-						<exclude>xml-apis:xml-apis</exclude>
-						<exclude>jtidy:jtidy</exclude>
-					</classpathExcludes>
-					<resolveTransitiveDependencies>
-						true
-					</resolveTransitiveDependencies>
-					<eclipseProjectName>
-						jss7-standalone-example-ussd
-					</eclipseProjectName>
-				</configuration>
-			</plugin>
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -435,7 +372,6 @@
 				<configuration>
 					<source>${compile.source}</source>  
 					<target>${compile.source}</target>
-					<debug>${compile.debug}</debug>
 				</configuration>
 			</plugin>
 			<plugin>
