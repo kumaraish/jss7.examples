@@ -6,52 +6,29 @@ package org.mobicents.jss7.standalone.example.ussd;
 import org.apache.log4j.Logger;
 import org.mobicents.protocols.api.IpChannelType;
 import org.mobicents.protocols.sctp.ManagementImpl;
+import org.mobicents.protocols.ss7.m3ua.Asp;
 import org.mobicents.protocols.ss7.m3ua.ExchangeType;
 import org.mobicents.protocols.ss7.m3ua.Functionality;
 import org.mobicents.protocols.ss7.m3ua.IPSPType;
-import org.mobicents.protocols.ss7.m3ua.impl.Asp;
-import org.mobicents.protocols.ss7.m3ua.impl.M3UAManagement;
+import org.mobicents.protocols.ss7.m3ua.impl.M3UAManagementImpl;
 import org.mobicents.protocols.ss7.m3ua.parameter.RoutingContext;
 import org.mobicents.protocols.ss7.m3ua.parameter.TrafficModeType;
 import org.mobicents.protocols.ss7.map.MAPStackImpl;
-import org.mobicents.protocols.ss7.map.api.MAPApplicationContext;
-import org.mobicents.protocols.ss7.map.api.MAPApplicationContextName;
-import org.mobicents.protocols.ss7.map.api.MAPApplicationContextVersion;
-import org.mobicents.protocols.ss7.map.api.MAPDialog;
-import org.mobicents.protocols.ss7.map.api.MAPException;
-import org.mobicents.protocols.ss7.map.api.MAPMessage;
-import org.mobicents.protocols.ss7.map.api.MAPProvider;
-import org.mobicents.protocols.ss7.map.api.dialog.MAPAbortProviderReason;
-import org.mobicents.protocols.ss7.map.api.dialog.MAPAbortSource;
-import org.mobicents.protocols.ss7.map.api.dialog.MAPNoticeProblemDiagnostic;
-import org.mobicents.protocols.ss7.map.api.dialog.MAPProviderError;
-import org.mobicents.protocols.ss7.map.api.dialog.MAPRefuseReason;
-import org.mobicents.protocols.ss7.map.api.dialog.MAPUserAbortChoice;
+import org.mobicents.protocols.ss7.map.api.*;
+import org.mobicents.protocols.ss7.map.api.datacoding.CBSDataCodingScheme;
+import org.mobicents.protocols.ss7.map.api.dialog.*;
 import org.mobicents.protocols.ss7.map.api.errors.MAPErrorMessage;
-import org.mobicents.protocols.ss7.map.api.primitives.AddressNature;
-import org.mobicents.protocols.ss7.map.api.primitives.AddressString;
-import org.mobicents.protocols.ss7.map.api.primitives.IMSI;
-import org.mobicents.protocols.ss7.map.api.primitives.ISDNAddressString;
-import org.mobicents.protocols.ss7.map.api.primitives.MAPExtensionContainer;
-import org.mobicents.protocols.ss7.map.api.primitives.NumberingPlan;
-import org.mobicents.protocols.ss7.map.api.primitives.USSDString;
-import org.mobicents.protocols.ss7.map.api.service.supplementary.MAPDialogSupplementary;
-import org.mobicents.protocols.ss7.map.api.service.supplementary.ProcessUnstructuredSSRequest;
-import org.mobicents.protocols.ss7.map.api.service.supplementary.ProcessUnstructuredSSResponse;
-import org.mobicents.protocols.ss7.map.api.service.supplementary.UnstructuredSSNotifyRequest;
-import org.mobicents.protocols.ss7.map.api.service.supplementary.UnstructuredSSNotifyResponse;
-import org.mobicents.protocols.ss7.map.api.service.supplementary.UnstructuredSSRequest;
-import org.mobicents.protocols.ss7.map.api.service.supplementary.UnstructuredSSResponse;
-import org.mobicents.protocols.ss7.sccp.impl.RemoteSignalingPointCode;
-import org.mobicents.protocols.ss7.sccp.impl.RemoteSubSystem;
-import org.mobicents.protocols.ss7.sccp.impl.SccpResource;
+import org.mobicents.protocols.ss7.map.api.primitives.*;
+import org.mobicents.protocols.ss7.map.api.service.supplementary.*;
+import org.mobicents.protocols.ss7.map.datacoding.CBSDataCodingSchemeImpl;
+import org.mobicents.protocols.ss7.sccp.impl.SccpResourceImpl;
 import org.mobicents.protocols.ss7.sccp.impl.SccpStackImpl;
-import org.mobicents.protocols.ss7.sccp.impl.router.Mtp3Destination;
-import org.mobicents.protocols.ss7.sccp.impl.router.Mtp3ServiceAccessPoint;
 import org.mobicents.protocols.ss7.tcap.TCAPStackImpl;
 import org.mobicents.protocols.ss7.tcap.api.TCAPStack;
 import org.mobicents.protocols.ss7.tcap.asn.ApplicationContextName;
 import org.mobicents.protocols.ss7.tcap.asn.comp.Problem;
+
+import java.nio.charset.Charset;
 
 /**
  * @author amit bhayani
@@ -65,11 +42,11 @@ public class SctpClient extends AbstractSctpBase {
 	private ManagementImpl sctpManagement;
 
 	// M3UA
-	private M3UAManagement clientM3UAMgmt;
+	private M3UAManagementImpl clientM3UAMgmt;
 
 	// SCCP
 	private SccpStackImpl sccpStack;
-	private SccpResource sccpResource;
+	private SccpResourceImpl sccpResource;
 
 	// TCAP
 	private TCAPStack tcapStack;
@@ -122,7 +99,7 @@ public class SctpClient extends AbstractSctpBase {
 
 	private void initM3UA() throws Exception {
 		logger.debug("Initializing M3UA Stack ....");
-		this.clientM3UAMgmt = new M3UAManagement("Client");
+		this.clientM3UAMgmt = new M3UAManagementImpl("Client");
 		this.clientM3UAMgmt.setTransportManagement(this.sctpManagement);
 		this.clientM3UAMgmt.start();
 		// this.clientM3UAMgmt.removeAllResourses();
@@ -131,7 +108,7 @@ public class SctpClient extends AbstractSctpBase {
 		RoutingContext rc = factory.createRoutingContext(new long[] { 100l });
 		TrafficModeType trafficModeType = factory.createTrafficModeType(TrafficModeType.Loadshare);
 		this.clientM3UAMgmt.createAs("AS1", Functionality.AS, ExchangeType.SE, IPSPType.CLIENT, rc, trafficModeType,
-				null);
+				0, null);
 
 		// Step 2 : Create ASP
 		this.clientM3UAMgmt.createAspFactory("ASP1", CLIENT_ASSOCIATION_NAME);
@@ -145,7 +122,7 @@ public class SctpClient extends AbstractSctpBase {
 
 	}
 
-	private void initSCCP() {
+	private void initSCCP() throws Exception {
 		logger.debug("Initializing SCCP Stack ....");
 		this.sccpStack = new SccpStackImpl("MapLoadClientSccpStack");
 		this.sccpStack.setMtp3UserPart(1, this.clientM3UAMgmt);
@@ -153,21 +130,21 @@ public class SctpClient extends AbstractSctpBase {
 		this.sccpStack.start();
 		this.sccpStack.removeAllResourses();
 
-		RemoteSignalingPointCode rspc = new RemoteSignalingPointCode(SERVET_SPC, 0, 0);
-		RemoteSubSystem rss = new RemoteSubSystem(SERVET_SPC, SSN, 0, false);
-		this.sccpStack.getSccpResource().addRemoteSpc(0, rspc);
-		this.sccpStack.getSccpResource().addRemoteSsn(0, rss);
+		//RemoteSignalingPointCode rspc = new RemoteSignalingPointCodeImpl(SERVET_SPC, 0, 0);
+		//RemoteSubSystem rss = new RemoteSubSystemImpl(SERVET_SPC, SSN, 0, false);
+		this.sccpStack.getSccpResource().addRemoteSpc(0, SERVET_SPC, 0, 0);
+		this.sccpStack.getSccpResource().addRemoteSsn(0, SERVET_SPC, SSN, 0, false);
 
-		Mtp3ServiceAccessPoint sap = new Mtp3ServiceAccessPoint(1, CLIENT_SPC, NETWORK_INDICATOR);
-		Mtp3Destination dest = new Mtp3Destination(SERVET_SPC, SERVET_SPC, 0, 255, 255);
-		this.sccpStack.getRouter().addMtp3ServiceAccessPoint(1, sap);
-		this.sccpStack.getRouter().addMtp3Destination(1, 1, dest);
+		//Mtp3ServiceAccessPoint sap = new Mtp3ServiceAccessPoint(1, CLIENT_SPC, NETWORK_INDICATOR);
+		//Mtp3Destination dest = new Mtp3Destination(SERVET_SPC, SERVET_SPC, 0, 255, 255);
+		this.sccpStack.getRouter().addMtp3ServiceAccessPoint(1, 1, CLIENT_SPC, NETWORK_INDICATOR);
+		this.sccpStack.getRouter().addMtp3Destination(1, 1, SERVET_SPC, SERVET_SPC, 0, 255, 255);
 		logger.debug("Initialized SCCP Stack ....");
 	}
 
-	private void initTCAP() {
+	private void initTCAP() throws Exception {
 		logger.debug("Initializing TCAP Stack ....");
-		this.tcapStack = new TCAPStackImpl(this.sccpStack.getSccpProvider(), SSN);
+		this.tcapStack = new TCAPStackImpl("TCAPStack", this.sccpStack.getSccpProvider(), SSN);
 		this.tcapStack.setDialogIdleTimeout(60000);
 		this.tcapStack.setInvokeTimeout(30000);
 		this.tcapStack.setMaxDialogs(2000);
@@ -175,11 +152,11 @@ public class SctpClient extends AbstractSctpBase {
 		logger.debug("Initialized TCAP Stack ....");
 	}
 
-	private void initMAP() {
+	private void initMAP() throws Exception {
 		logger.debug("Initializing MAP Stack ....");
 		// this.mapStack = new MAPStackImpl(this.sccpStack.getSccpProvider(),
 		// SSN);
-		this.mapStack = new MAPStackImpl(this.tcapStack.getProvider());
+		this.mapStack = new MAPStackImpl("MAPStack", this.tcapStack.getProvider());
 		this.mapProvider = this.mapStack.getMAPProvider();
 
 		this.mapProvider.addMAPDialogListener(this);
@@ -198,13 +175,13 @@ public class SctpClient extends AbstractSctpBase {
 				MAPApplicationContext.getInstance(MAPApplicationContextName.networkUnstructuredSsContext,
 						MAPApplicationContextVersion.version2), SCCP_CLIENT_ADDRESS, null, SCCP_SERVER_ADDRESS, null);
 
-		byte ussdDataCodingScheme = 0x0f;
+		CBSDataCodingScheme ussdDataCodingScheme = new CBSDataCodingSchemeImpl(0x0f);
 
 		// USSD String: *125*+31628839999#
 		// The Charset is null, here we let system use default Charset (UTF-7 as
 		// explained in GSM 03.38. However if MAP User wants, it can set its own
 		// impl of Charset
-		USSDString ussdString = this.mapProvider.getMAPParameterFactory().createUSSDString("*125*+31628839999#", null);
+		USSDString ussdString = this.mapProvider.getMAPParameterFactory().createUSSDString("*125*+31628839999#");
 
 		ISDNAddressString msisdn = this.mapProvider.getMAPParameterFactory().createISDNAddressString(
 				AddressNature.international_number, NumberingPlan.ISDN, "31628838002");
@@ -226,8 +203,12 @@ public class SctpClient extends AbstractSctpBase {
 	public void onDialogAccept(MAPDialog mapDialog, MAPExtensionContainer extensionContainer) {
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("onDialogAccept for DialogId=%d MAPExtensionContainer=%s",
-					mapDialog.getDialogId(), extensionContainer));
+					mapDialog.getLocalDialogId(), extensionContainer));
 		}
+	}
+
+	public void onDialogReject(MAPDialog mapDialog, MAPRefuseReason mapRefuseReason, ApplicationContextName applicationContextName, MAPExtensionContainer mapExtensionContainer) {
+
 	}
 
 	/*
@@ -239,7 +220,7 @@ public class SctpClient extends AbstractSctpBase {
 	 */
 	public void onDialogClose(MAPDialog mapDialog) {
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("DialogClose for Dialog=%d", mapDialog.getDialogId()));
+			logger.debug(String.format("DialogClose for Dialog=%d", mapDialog.getLocalDialogId()));
 		}
 
 	}
@@ -253,7 +234,7 @@ public class SctpClient extends AbstractSctpBase {
 	 */
 	public void onDialogDelimiter(MAPDialog mapDialog) {
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("onDialogDelimiter for DialogId=%d", mapDialog.getDialogId()));
+			logger.debug(String.format("onDialogDelimiter for DialogId=%d", mapDialog.getLocalDialogId()));
 		}
 	}
 
@@ -267,7 +248,7 @@ public class SctpClient extends AbstractSctpBase {
 	 */
 	public void onDialogNotice(MAPDialog mapDialog, MAPNoticeProblemDiagnostic noticeProblemDiagnostic) {
 		logger.error(String.format("onDialogNotice for DialogId=%d MAPNoticeProblemDiagnostic=%s ",
-				mapDialog.getDialogId(), noticeProblemDiagnostic));
+				mapDialog.getLocalDialogId(), noticeProblemDiagnostic));
 	}
 
 	/*
@@ -284,7 +265,7 @@ public class SctpClient extends AbstractSctpBase {
 			MAPAbortSource abortSource, MAPExtensionContainer extensionContainer) {
 		logger.error(String
 				.format("onDialogProviderAbort for DialogId=%d MAPAbortProviderReason=%s MAPAbortSource=%s MAPExtensionContainer=%s",
-						mapDialog.getDialogId(), abortProviderReason, abortSource, extensionContainer));
+						mapDialog.getLocalDialogId(), abortProviderReason, abortSource, extensionContainer));
 	}
 
 	/*
@@ -298,11 +279,11 @@ public class SctpClient extends AbstractSctpBase {
 	 * org.mobicents.protocols.ss7.tcap.asn.ApplicationContextName,
 	 * org.mobicents.protocols.ss7.map.api.primitives.MAPExtensionContainer)
 	 */
-	public void onDialogReject(MAPDialog mapDialog, MAPRefuseReason refuseReason, MAPProviderError providerError,
+	public void onDialogReject(MAPDialog mapDialog, MAPRefuseReason refuseReason, MAPProviderAbortReason providerError,
 			ApplicationContextName alternativeApplicationContext, MAPExtensionContainer extensionContainer) {
 		logger.error(String
 				.format("onDialogReject for DialogId=%d MAPRefuseReason=%s MAPProviderError=%s ApplicationContextName=%s MAPExtensionContainer=%s",
-						mapDialog.getDialogId(), refuseReason, providerError, alternativeApplicationContext,
+						mapDialog.getLocalDialogId(), refuseReason, providerError, alternativeApplicationContext,
 						extensionContainer));
 	}
 
@@ -315,7 +296,7 @@ public class SctpClient extends AbstractSctpBase {
 	 */
 	public void onDialogRelease(MAPDialog mapDialog) {
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("onDialogResease for DialogId=%d", mapDialog.getDialogId()));
+			logger.debug(String.format("onDialogResease for DialogId=%d", mapDialog.getLocalDialogId()));
 		}
 	}
 
@@ -334,7 +315,7 @@ public class SctpClient extends AbstractSctpBase {
 		if (logger.isDebugEnabled()) {
 			logger.debug(String
 					.format("onDialogRequest for DialogId=%d DestinationReference=%s OriginReference=%s MAPExtensionContainer=%s",
-							mapDialog.getDialogId(), destReference, origReference, extensionContainer));
+							mapDialog.getLocalDialogId(), destReference, origReference, extensionContainer));
 		}
 	}
 
@@ -353,7 +334,7 @@ public class SctpClient extends AbstractSctpBase {
 			IMSI arg3, AddressString arg4) {
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("onDialogRequest for DialogId=%d DestinationReference=%s OriginReference=%s ",
-					mapDialog.getDialogId(), destReference, origReference));
+					mapDialog.getLocalDialogId(), destReference, origReference));
 		}
 	}
 
@@ -365,7 +346,7 @@ public class SctpClient extends AbstractSctpBase {
 	 * (org.mobicents.protocols.ss7.map.api.MAPDialog)
 	 */
 	public void onDialogTimeout(MAPDialog mapDialog) {
-		logger.error(String.format("onDialogTimeout for DialogId=%d", mapDialog.getDialogId()));
+		logger.error(String.format("onDialogTimeout for DialogId=%d", mapDialog.getLocalDialogId()));
 	}
 
 	/*
@@ -380,7 +361,7 @@ public class SctpClient extends AbstractSctpBase {
 	public void onDialogUserAbort(MAPDialog mapDialog, MAPUserAbortChoice userReason,
 			MAPExtensionContainer extensionContainer) {
 		logger.error(String.format("onDialogUserAbort for DialogId=%d MAPUserAbortChoice=%s MAPExtensionContainer=%s",
-				mapDialog.getDialogId(), userReason, extensionContainer));
+				mapDialog.getLocalDialogId(), userReason, extensionContainer));
 	}
 
 	/*
@@ -396,7 +377,7 @@ public class SctpClient extends AbstractSctpBase {
 		// This error condition. Client should never receive the
 		// ProcessUnstructuredSSRequestIndication
 		logger.error(String.format("onProcessUnstructuredSSRequestIndication for Dialog=%d and invokeId=%d",
-				procUnstrReqInd.getMAPDialog().getDialogId(), procUnstrReqInd.getInvokeId()));
+				procUnstrReqInd.getMAPDialog().getLocalDialogId(), procUnstrReqInd.getInvokeId()));
 	}
 
 	/*
@@ -410,8 +391,12 @@ public class SctpClient extends AbstractSctpBase {
 	 */
 	public void onProcessUnstructuredSSResponse(ProcessUnstructuredSSResponse procUnstrResInd) {
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("Rx ProcessUnstructuredSSResponseIndication.  USSD String=%s", procUnstrResInd
-					.getUSSDString().getString()));
+			try {
+				logger.debug(String.format("Rx ProcessUnstructuredSSResponseIndication.  USSD String=%s", procUnstrResInd
+                        .getUSSDString().getString(Charset.defaultCharset())));
+			} catch (MAPException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -427,7 +412,7 @@ public class SctpClient extends AbstractSctpBase {
 		// This error condition. Client should never receive the
 		// UnstructuredSSNotifyRequestIndication
 		logger.error(String.format("onUnstructuredSSNotifyRequestIndication for Dialog=%d and invokeId=%d",
-				unstrNotifyInd.getMAPDialog().getDialogId(), unstrNotifyInd.getInvokeId()));
+				unstrNotifyInd.getMAPDialog().getLocalDialogId(), unstrNotifyInd.getInvokeId()));
 	}
 
 	/*
@@ -443,7 +428,7 @@ public class SctpClient extends AbstractSctpBase {
 		// This error condition. Client should never receive the
 		// UnstructuredSSNotifyRequestIndication
 		logger.error(String.format("onUnstructuredSSNotifyResponseIndication for Dialog=%d and invokeId=%d",
-				unstrNotifyInd.getMAPDialog().getDialogId(), unstrNotifyInd.getInvokeId()));
+				unstrNotifyInd.getMAPDialog().getLocalDialogId(), unstrNotifyInd.getInvokeId()));
 	}
 
 	/*
@@ -456,16 +441,20 @@ public class SctpClient extends AbstractSctpBase {
 	 */
 	public void onUnstructuredSSRequest(UnstructuredSSRequest unstrReqInd) {
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("Rx UnstructuredSSRequestIndication. USSD String=%s ", unstrReqInd
-					.getUSSDString().getString()));
+			try {
+				logger.debug(String.format("Rx UnstructuredSSRequestIndication. USSD String=%s ", unstrReqInd
+                        .getUSSDString().getString(Charset.defaultCharset())));
+			} catch (MAPException e) {
+				e.printStackTrace();
+			}
 		}
 
 		MAPDialogSupplementary mapDialog = unstrReqInd.getMAPDialog();
 
 		try {
-			byte ussdDataCodingScheme = 0x0f;
+			CBSDataCodingScheme ussdDataCodingScheme = new CBSDataCodingSchemeImpl(0x0f);
 
-			USSDString ussdString = this.mapProvider.getMAPParameterFactory().createUSSDString("1", null);
+			USSDString ussdString = this.mapProvider.getMAPParameterFactory().createUSSDString("1");
 
 			AddressString msisdn = this.mapProvider.getMAPParameterFactory().createAddressString(
 					AddressNature.international_number, NumberingPlan.ISDN, "31628838002");
@@ -475,7 +464,7 @@ public class SctpClient extends AbstractSctpBase {
 
 		} catch (MAPException e) {
 			logger.error(String.format("Error while sending UnstructuredSSResponse for Dialog=%d",
-					mapDialog.getDialogId()));
+					mapDialog.getLocalDialogId()));
 		}
 
 	}
@@ -492,7 +481,7 @@ public class SctpClient extends AbstractSctpBase {
 		// This error condition. Client should never receive the
 		// UnstructuredSSResponseIndication
 		logger.error(String.format("onUnstructuredSSResponseIndication for Dialog=%d and invokeId=%d", unstrResInd
-				.getMAPDialog().getDialogId(), unstrResInd.getInvokeId()));
+				.getMAPDialog().getLocalDialogId(), unstrResInd.getInvokeId()));
 	}
 
 	/*
@@ -505,7 +494,11 @@ public class SctpClient extends AbstractSctpBase {
 	 */
 	public void onErrorComponent(MAPDialog mapDialog, Long invokeId, MAPErrorMessage mapErrorMessage) {
 		logger.error(String.format("onErrorComponent for Dialog=%d and invokeId=%d MAPErrorMessage=%s",
-				mapDialog.getDialogId(), invokeId, mapErrorMessage));
+				mapDialog.getLocalDialogId(), invokeId, mapErrorMessage));
+	}
+
+	public void onRejectComponent(MAPDialog mapDialog, Long aLong, Problem problem, boolean b) {
+
 	}
 
 	/*
@@ -516,7 +509,7 @@ public class SctpClient extends AbstractSctpBase {
 	 * (org.mobicents.protocols.ss7.map.api.MAPDialog, java.lang.Long)
 	 */
 	public void onInvokeTimeout(MAPDialog mapDialog, Long invokeId) {
-		logger.error(String.format("onInvokeTimeout for Dialog=%d and invokeId=%d", mapDialog.getDialogId(), invokeId));
+		logger.error(String.format("onInvokeTimeout for Dialog=%d and invokeId=%d", mapDialog.getLocalDialogId(), invokeId));
 	}
 
 	/*
@@ -539,9 +532,9 @@ public class SctpClient extends AbstractSctpBase {
 	 * java.lang.Long,
 	 * org.mobicents.protocols.ss7.map.api.dialog.MAPProviderError)
 	 */
-	public void onProviderErrorComponent(MAPDialog mapDialog, Long invokeId, MAPProviderError providerError) {
+	public void onProviderErrorComponent(MAPDialog mapDialog, Long invokeId, MAPProviderAbortReason providerError) {
 		logger.error(String.format("onProviderErrorComponent for Dialog=%d and invokeId=%d MAPProviderError=%s",
-				mapDialog.getDialogId(), invokeId, providerError));
+				mapDialog.getLocalDialogId(), invokeId, providerError));
 	}
 
 	/*
@@ -554,7 +547,7 @@ public class SctpClient extends AbstractSctpBase {
 	 */
 	public void onRejectComponent(MAPDialog mapDialog, Long invokeId, Problem problem) {
 		logger.error(String.format("onRejectComponent for Dialog=%d and invokeId=%d Problem=%s",
-				mapDialog.getDialogId(), invokeId, problem));
+				mapDialog.getLocalDialogId(), invokeId, problem));
 	}
 
 	public static void main(String args[]) {

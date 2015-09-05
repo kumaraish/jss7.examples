@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.mobicents</groupId>
 		<artifactId>mobicents-parent</artifactId>
-		<version>2.23</version>
+		<version>2.26</version>
 	</parent>
 
 	<artifactId>ss7-standalone-example-ussd</artifactId>
@@ -25,11 +25,11 @@
 		<compiler.plugin.version>2.0.2</compiler.plugin.version>
 		<compile.source>1.5</compile.source>
 		<!-- mobicents jSS7 -->
-		<jss7.version>2.0.0.BETA1</jss7.version>
+		<jss7.version>2.1.0.FINAL</jss7.version>
 		<!-- mobicents but not strictly ss7 -->
-		<asn.version>2.0.0.FINAL</asn.version>
+		<asn.version>2.0.2.FINAL</asn.version>
 		<stream.version>1.0.0.CR1</stream.version>
-		<sctp.version>1.6.0.FINAL</sctp.version>
+		<sctp.version>1.4.0.FINAL</sctp.version>
 		<commons.version>1.0.0.CR1</commons.version>
 	</properties>
 
@@ -66,27 +66,41 @@
 			<version>${sctp.version}</version>
 		</dependency>
 		<!-- Scheduler -->
-		<!--<dependency>
+		<dependency>
 			<groupId>org.mobicents.protocols.ss7.scheduler</groupId>
 			<artifactId>scheduler</artifactId>
 			<version>${jss7.version}</version>
-		</dependency>-->
-		<!-- Clock -->
+		</dependency>
+		<!-- Clock
 		<dependency>
 			<groupId>org.mobicents.protocols.ss7.clock</groupId>
 			<artifactId>clock</artifactId>
 			<version>${jss7.version}</version>
 		</dependency>
+		-->
 		<!-- Management Shell -->
 		<dependency>
-			<artifactId>shell</artifactId>
-			<groupId>
-					org.mobicents.protocols.ss7.management
-				</groupId>
+			<artifactId>shell-transport</artifactId>
+			<groupId>org.mobicents.protocols.ss7.management</groupId>
+			<version>${jss7.version}</version>
+		</dependency>
+		<dependency>
+			<artifactId>shell-client</artifactId>
+			<groupId>org.mobicents.protocols.ss7.management</groupId>
+			<version>${jss7.version}</version>
+		</dependency>
+		<dependency>
+			<artifactId>shell-server-api</artifactId>
+			<groupId>org.mobicents.protocols.ss7.management</groupId>
+			<version>${jss7.version}</version>
+		</dependency>
+		<dependency>
+			<artifactId>shell-server-impl</artifactId>
+			<groupId>org.mobicents.protocols.ss7.management</groupId>
 			<version>${jss7.version}</version>
 		</dependency>
 
-		<!-- Management linkset -->
+		<!-- Management linkset
 		<dependency>
 			<artifactId>linkset</artifactId>
 			<groupId>
@@ -94,6 +108,7 @@
 				</groupId>
 			<version>${jss7.version}</version>
 		</dependency>
+		-->
 
 		<!-- Hardware Dahdi Java -->
 		<!--<dependency>
