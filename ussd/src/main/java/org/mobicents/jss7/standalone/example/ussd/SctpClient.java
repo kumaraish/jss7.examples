@@ -168,29 +168,46 @@ public class SctpClient extends AbstractSctpBase {
 		logger.debug("Initialized MAP Stack ....");
 	}
 
-	private void initiateUSSD() throws MAPException {
+    private void initiateUSSD() throws MAPException {
 
-		// First create Dialog
-		MAPDialogSupplementary mapDialog = this.mapProvider.getMAPServiceSupplementary().createNewDialog(
+        // First create Dialog
+        /*MAPDialogSupplementary mapDialog = this.mapProvider.getMAPServiceSupplementary().createNewDialog(
 				MAPApplicationContext.getInstance(MAPApplicationContextName.networkUnstructuredSsContext,
-						MAPApplicationContextVersion.version2), SCCP_CLIENT_ADDRESS, null, SCCP_SERVER_ADDRESS, null);
+						MAPApplicationContextVersion.version2), SCCP_CLIENT_ADDRESS, null, SCCP_SERVER_ADDRESS, null);*/
 
-		CBSDataCodingScheme ussdDataCodingScheme = new CBSDataCodingSchemeImpl(0x0f);
+        MAPParameterFactory mapParameterFactory = this.mapProvider.getMAPParameterFactory();
 
-		// USSD String: *125*+31628839999#
-		// The Charset is null, here we let system use default Charset (UTF-7 as
-		// explained in GSM 03.38. However if MAP User wants, it can set its own
-		// impl of Charset
-		USSDString ussdString = this.mapProvider.getMAPParameterFactory().createUSSDString("*125*+31628839999#");
+        // Originating address but its value is to be carried at MAP level.
+        // Mobile Country Code (MCC): Brazil (Federative Republic of) (724)
+        // Mobile Network Code (MNC): CTBC CELULAR R I (34)
+        ISDNAddressString origReference = mapParameterFactory.createISDNAddressString(AddressNature.international_number, NumberingPlan.land_mobile, "72434");
 
-		ISDNAddressString msisdn = this.mapProvider.getMAPParameterFactory().createISDNAddressString(
-				AddressNature.international_number, NumberingPlan.ISDN, "31628838002");
+        // Destination address but its value is to be carried at MAP level.
+        // Mobile Country Code (MCC): Germany (Federal Republic of) (262)
+        //Mobile Network Code (MNC): Vodafone D2 GmbH (02)
+        ISDNAddressString destReference = mapParameterFactory.createISDNAddressString(AddressNature.international_number, NumberingPlan.land_mobile, "26202");
 
-		mapDialog.addProcessUnstructuredSSRequest(ussdDataCodingScheme, ussdString, null, msisdn);
+        MAPDialogSupplementary mapDialog = this.mapProvider.getMAPServiceSupplementary()
+                .createNewDialog(MAPApplicationContext.getInstance(MAPApplicationContextName.networkUnstructuredSsContext,
+                        MAPApplicationContextVersion.version2), SCCP_CLIENT_ADDRESS, origReference, SCCP_SERVER_ADDRESS, destReference);
 
-		// This will initiate the TC-BEGIN with INVOKE component
-		mapDialog.send();
-	}
+
+        CBSDataCodingScheme ussdDataCodingScheme = new CBSDataCodingSchemeImpl(0x0f);
+
+        // USSD String: *125*+31628839999#
+        // The Charset is null, here we let system use default Charset (UTF-7 as
+        // explained in GSM 03.38. However if MAP User wants, it can set its own
+        // impl of Charset
+        USSDString ussdString = this.mapProvider.getMAPParameterFactory().createUSSDString("*125*+31628839999#");
+
+        ISDNAddressString msisdn = this.mapProvider.getMAPParameterFactory().createISDNAddressString(
+                AddressNature.international_number, NumberingPlan.ISDN, "553491756709");
+
+        mapDialog.addProcessUnstructuredSSRequest(ussdDataCodingScheme, ussdString, null, msisdn);
+
+        // This will initiate the TC-BEGIN with INVOKE component
+        mapDialog.send();
+    }
 
 	/*
 	 * (non-Javadoc)
@@ -265,7 +282,7 @@ public class SctpClient extends AbstractSctpBase {
 			MAPAbortSource abortSource, MAPExtensionContainer extensionContainer) {
 		logger.error(String
 				.format("onDialogProviderAbort for DialogId=%d MAPAbortProviderReason=%s MAPAbortSource=%s MAPExtensionContainer=%s",
-						mapDialog.getLocalDialogId(), abortProviderReason, abortSource, extensionContainer));
+                        mapDialog.getLocalDialogId(), abortProviderReason, abortSource, extensionContainer));
 	}
 
 	/*
@@ -283,8 +300,8 @@ public class SctpClient extends AbstractSctpBase {
 			ApplicationContextName alternativeApplicationContext, MAPExtensionContainer extensionContainer) {
 		logger.error(String
 				.format("onDialogReject for DialogId=%d MAPRefuseReason=%s MAPProviderError=%s ApplicationContextName=%s MAPExtensionContainer=%s",
-						mapDialog.getLocalDialogId(), refuseReason, providerError, alternativeApplicationContext,
-						extensionContainer));
+                        mapDialog.getLocalDialogId(), refuseReason, providerError, alternativeApplicationContext,
+                        extensionContainer));
 	}
 
 	/*
@@ -315,7 +332,7 @@ public class SctpClient extends AbstractSctpBase {
 		if (logger.isDebugEnabled()) {
 			logger.debug(String
 					.format("onDialogRequest for DialogId=%d DestinationReference=%s OriginReference=%s MAPExtensionContainer=%s",
-							mapDialog.getLocalDialogId(), destReference, origReference, extensionContainer));
+                            mapDialog.getLocalDialogId(), destReference, origReference, extensionContainer));
 		}
 	}
 
